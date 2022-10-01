@@ -3,9 +3,11 @@
 use egui::{Ui, RichText};
 use eframe::egui;
 
+use crate::data::Service;
+
 // Constants
 
-// TODO: Read %AppData%/XIVLauncher/addon/Hooks/dev/ for available libraries?
+// TODO: Read local directory for available libraries?
 const LIBRARIES: &'static [(&str, bool)] = &[ // name, enabled by default
 	("FFXIVClientStructs", true),
 	("Dalamud", true),
@@ -18,8 +20,6 @@ const LIBRARIES: &'static [(&str, bool)] = &[ // name, enabled by default
 	("Newtonsoft.Json", false),
 	("CheapLoc", false)
 ];
-
-const SERVICES: &'static str = include_str!("../data/api.json");
 
 // Tab enum
 
@@ -43,7 +43,8 @@ pub struct Gui {
 
 	pub libraries: Vec<(String, bool)>, // name, enabled
 
-	pub service_class: String
+	pub service_class: String,
+	pub services: Vec<Service>
 }
 
 impl Gui {
@@ -63,9 +64,10 @@ impl Gui {
 			author: "".to_string(),
 			tags: "".to_string(),
 
-			service_class: "Services".to_string(),
+			libraries,
 
-			libraries
+			service_class: "Services".to_string(),
+			services: Service::get_all()
 		}
 	}
 
@@ -124,6 +126,13 @@ impl Gui {
 
 		Gui::bold(ui, "Class Name");
 		ui.text_edit_singleline(&mut self.service_class);
+
+		ui.separator();
+
+		for service in &mut self.services {
+			let name = service.name.to_owned();
+			ui.checkbox(&mut service.enabled, name);
+		}
 	}
 }
 
@@ -148,16 +157,18 @@ impl eframe::App for Gui {
 
 		// Draw tab
 
-		egui::CentralPanel::default().show(ctx, |ui| {
-			let spacing = ui.spacing_mut();
-			spacing.item_spacing.y = 10.0;
+		egui::CentralPanel::default().show(ctx, |_ui| {
+			egui::ScrollArea::vertical().show(_ui, |ui| {
+				let spacing = ui.spacing_mut();
+				spacing.item_spacing.y = 10.0;
 
-			match self.tab {
-				Tab::Basics => self.tab_basics(ui),
-				Tab::Dependencies => self.tab_deps(ui),
-				Tab::Services => self.tab_services(ui),
-				_ => {}
-			}
+				match self.tab {
+					Tab::Basics => self.tab_basics(ui),
+					Tab::Dependencies => self.tab_deps(ui),
+					Tab::Services => self.tab_services(ui),
+					_ => {}
+				}
+			});
 		});
 	}
 }
