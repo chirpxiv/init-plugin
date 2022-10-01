@@ -9,7 +9,7 @@ import { Octokit } from "https://cdn.skypack.dev/@octokit/rest?dts";
 const repo = "goatcorp/Dalamud";
 
 const outputDir = "./data";
-const outputFile = "api.json";
+const outputFile = "services.csv";
 
 // API Code
 
@@ -34,11 +34,10 @@ async function getServices() {
 				namespace = path.slice(0, -1).join("."),
 				className = path.pop()?.split(".")[0];
 			
-			return {
-				path: item.path,
-				namespace,
-				className
-			};
+			return [
+				className,
+				namespace
+			].join(",");
 		})
 		.filter((item: {}) => item != null);
 
@@ -68,11 +67,8 @@ async function main() {
 	if (exists(outputPath))
 		return;
 
-	const api = {
-		services: await getServices()
-	};
-
-	Deno.writeTextFileSync(outputPath, JSON.stringify(api, null, 4));
+	const content = await getServices();
+	Deno.writeTextFileSync(outputPath, content.join("\n"));
 }
 
 await main();

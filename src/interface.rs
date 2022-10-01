@@ -5,7 +5,8 @@ use eframe::egui;
 
 // Constants
 
-static LIBRARIES: &'static [(&str, bool)] = &[ // name, enabled
+// TODO: Read %AppData%/XIVLauncher/addon/Hooks/dev/ for available libraries?
+const LIBRARIES: &'static [(&str, bool)] = &[ // name, enabled by default
 	("FFXIVClientStructs", true),
 	("Dalamud", true),
 	("ImGui.NET", true),
@@ -17,6 +18,8 @@ static LIBRARIES: &'static [(&str, bool)] = &[ // name, enabled
 	("Newtonsoft.Json", false),
 	("CheapLoc", false)
 ];
+
+const SERVICES: &'static str = include_str!("../data/api.json");
 
 // Tab enum
 
