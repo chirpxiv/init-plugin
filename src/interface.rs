@@ -27,7 +27,8 @@ const LIBRARIES: &'static [(&str, bool)] = &[ // name, enabled by default
 pub enum Tab {
 	Basics,
 	Dependencies,
-	Services
+	Services,
+	Setup
 }
 
 // Gui
@@ -44,7 +45,14 @@ pub struct Gui {
 	pub libraries: Vec<(String, bool)>, // name, enabled
 
 	pub service_class: String,
-	pub services: Vec<Service>
+	pub services: Vec<Service>,
+
+	pub path: String,
+
+	pub git_enable: bool,
+	pub git_enable_md: bool,
+	pub git_remote: String,
+	pub git_readme: String
 }
 
 impl Gui {
@@ -67,7 +75,14 @@ impl Gui {
 			libraries,
 
 			service_class: "Services".to_string(),
-			services: Service::get_all()
+			services: Service::get_all(),
+
+			path: "".to_string(),
+
+			git_enable: true,
+			git_enable_md: true,
+			git_remote: "".to_string(),
+			git_readme: "".to_string()
 		}
 	}
 
@@ -85,7 +100,6 @@ impl Gui {
 
 	fn tab_basics(&mut self, ui: &mut Ui) {
 		Gui::heading(ui, "Basics");
-
 		ui.separator();
 
 		Gui::bold(ui, "Name");
@@ -98,7 +112,6 @@ impl Gui {
 
 		Gui::bold(ui, "Description");
 		ui.text_edit_multiline(&mut self.description);
-
 		ui.separator();
 
 		Gui::bold(ui, "Author");
@@ -111,7 +124,6 @@ impl Gui {
 
 	fn tab_deps(&mut self, ui: &mut Ui) {
 		Gui::heading(ui, "Dependencies");
-
 		ui.separator();
 
 		for pair in &mut self.libraries {
@@ -121,18 +133,38 @@ impl Gui {
 
 	fn tab_services(&mut self, ui: &mut Ui) {
 		Gui::heading(ui, "Services");
-
 		ui.separator();
 
 		Gui::bold(ui, "Class Name");
 		ui.text_edit_singleline(&mut self.service_class);
-
 		ui.separator();
 
 		for service in &mut self.services {
 			let name = service.name.to_owned();
 			ui.checkbox(&mut service.enabled, name);
 		}
+	}
+
+	fn tab_setup(&mut self, ui: &mut Ui) {
+		Gui::heading(ui, "Setup");
+		ui.separator();
+
+		Gui::bold(ui, "Local Path");
+		ui.text_edit_singleline(&mut self.path);
+
+		Gui::bold(ui, "Git Repo");
+		ui.checkbox(&mut self.git_enable, "Initialise git repository");
+
+		Gui::bold(ui, "Remote URL");
+		ui.add_enabled_ui(self.git_enable, |ui_2| {
+			ui_2.text_edit_singleline(&mut self.git_remote);
+		});
+
+		Gui::bold(ui, "README");
+		ui.checkbox(&mut self.git_enable_md, "Create README");
+		ui.add_enabled_ui(self.git_enable_md, |ui_2| {
+			ui_2.text_edit_multiline(&mut self.git_readme);
+		});
 	}
 }
 
@@ -153,6 +185,8 @@ impl eframe::App for Gui {
 				{ self.tab = Tab::Dependencies; }
 			if ui.selectable_label(self.tab == Tab::Services, "Services").clicked()
 				{ self.tab = Tab::Services; }
+			if ui.selectable_label(self.tab == Tab::Setup, "Setup").clicked()
+				{ self.tab = Tab::Setup; }
 		});
 
 		// Draw tab
@@ -166,6 +200,7 @@ impl eframe::App for Gui {
 					Tab::Basics => self.tab_basics(ui),
 					Tab::Dependencies => self.tab_deps(ui),
 					Tab::Services => self.tab_services(ui),
+					Tab::Setup => self.tab_setup(ui),
 					_ => {}
 				}
 			});
